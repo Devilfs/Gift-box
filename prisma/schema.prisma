@@ -1,0 +1,46 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Gift {
+  id            String   @id @default(uuid())
+  title         String   @db.VarChar(255)
+  senderName    String   @db.VarChar(100)
+  receiverName  String   @db.VarChar(100)
+  message       String?
+  theme         String   @default("birthday") @db.VarChar(50)
+  passwordHash  String?  @db.VarChar(255)
+  unlockDate    DateTime?
+  isOpened      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  items         GiftItem[]
+
+  @@map("gifts")
+  @@index([createdAt(sort: Desc)])
+}
+
+model GiftItem {
+  id          String   @id @default(uuid())
+  giftId      String
+  type        String   @db.VarChar(20)
+  contentText String?
+  mediaUrl    String?
+  caption     String?  @db.VarChar(255)
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  gift        Gift     @relation(fields: [giftId], references: [id], onDelete: Cascade)
+
+  @@unique([giftId, position])
+  @@map("gift_items")
+  @@index([giftId])
+  @@index([position])
+}
+
